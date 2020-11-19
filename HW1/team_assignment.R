@@ -42,4 +42,4 @@ close(read.binfile)
 
 ## decrypt file with private key + print it on screen
 decrypted_message <- rawToChar(PKI.decrypt(reread.encrypted.data, prv.key.loaded))
-decrypted_message
+print(decrypted_message)
