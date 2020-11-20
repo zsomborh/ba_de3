@@ -29,6 +29,20 @@ writeBin(encrypted, file("encrypted_message.dat", "wb"))
 close(file("encrypted_message.dat", "wb"))
 
 
+
+# Adding second message ---------------------------------------------------
+
+pub.pem.loaded <- scan("id_ceu_edu.pub", what='list', sep='\n') 
+pub.key.loaded <- PKI.load.key(pub.pem.loaded)
+
+message2 <- 'This shall be the big big message'
+bytes.to.encode = charToRaw(message2)
+encrypted <- PKI.encrypt(bytes.to.encode, pub.key.loaded)
+
+writeBin(encrypted, file("encrypted_message2.dat", "wb"))
+close(file("encrypted_message2.dat", "wb"))
+
+
 # 5) CEU reads it's private key from disk + decrypts message -----------------
 
 ##load private key from disk + convert to key 
@@ -40,6 +54,16 @@ read.binfile <- file("encrypted_message.dat", "rb")
 reread.encrypted.data <- readBin(read.binfile, raw(), n=999999999) 
 close(read.binfile)
 
+## read second message
+read.binfile2 <- file("encrypted_message2.dat", "rb")
+reread.encrypted.data2 <- readBin(read.binfile2, raw(), n=999999999) 
+close(read.binfile2)
+
+
 ## decrypt file with private key + print it on screen
 decrypted_message <- rawToChar(PKI.decrypt(reread.encrypted.data, prv.key.loaded))
 print(decrypted_message)
+
+## second message
+decrypted_message2 <- rawToChar(PKI.decrypt(reread.encrypted.data2, prv.key.loaded))
+print(decrypted_message2)
