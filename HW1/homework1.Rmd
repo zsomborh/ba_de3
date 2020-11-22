@@ -1,6 +1,6 @@
 ---
-title: "Team assignment for homework 1"
-author: "Student IDs: 2002392, "
+title: "Team 13's assignment for homework 1"
+author: "Student IDs: 2002392, 2001531, 1901587"
 date: '2020 november 22 '
 output: pdf_document
 ---
