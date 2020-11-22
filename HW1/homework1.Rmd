@@ -1,0 +1,105 @@
+---
+title: "Team assignment for homework 1"
+author: "Student IDs: 2002392, "
+date: '2020 november 22 '
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(PKI)
+```
+
+# Summary
+
+This markdown is to summarise our solutions for the first homework. Files are also available in this [github repo](https://github.com/zsomborh/ba_de3/tree/main/HW1), except for the private key in order to avoid security warnings from git.
+
+##### 1) Generating keys
+
+We will generate a public-private RSA keypair for ceu.edu for which we use the PKI R package. We will save both keys in PEM format with the following code: 
+
+```{r keys}
+key <- PKI.genRSAkey(bits = 2048L)
+prv.pem <- PKI.save.key(key, private=TRUE)
+pub.pem <- PKI.save.key(key, private=FALSE)
+```
+
+##### 2) CEU sending public key to visitors 
+
+We will write out the public and the private key as well in PEM format to disk. The same public key `id_ceu_edu.pub` will be sent to two visitors.
+
+```{r write_key}
+write(pub.pem, file="id_ceu_edu.pub")
+write(prv.pem, file="id_ceu_edu")
+```
+
+##### 3) Visitors create encoded message 
+
+Using the received public key, the first visitor, Visitor1 encrypts their message which is just to say hi to ceu.edu. They first load the received pub, extract it into a key object, then they use that to encrypt their message which is already converted to bytes. 
+
+```{r message1}
+pub.pem.loaded <- scan("id_ceu_edu.pub", what='list', sep='\n') 
+pub.key.loaded <- PKI.load.key(pub.pem.loaded)
+message <- 'Hi ceu.edu'
+bytes.to.encode = charToRaw(message)
+encrypted <- PKI.encrypt(bytes.to.encode, pub.key.loaded)
+```
+
+Visitor2 does the same with their message to ceu.edu
+
+```{r message2}
+pub.pem.loaded <- scan("id_ceu_edu.pub", what='list', sep='\n') 
+pub.key.loaded <- PKI.load.key(pub.pem.loaded)
+message2 <- 'This shall be my message'
+bytes.to.encode2 = charToRaw(message2)
+encrypted2 <- PKI.encrypt(bytes.to.encode2, pub.key.loaded)
+```
+
+##### 4) Visitors send message to ceu.edu 
+
+The visitors write their message to disk and send it to ceu.edu per below :
+
+```{r write_message}
+# First message
+first_write <- file("encrypted_message.dat", "wb")
+writeBin(encrypted, first_write)
+close(first_write)
+
+#Second message
+second_write <- file("encrypted_message2.dat", "wb")
+writeBin(encrypted2, second_write)
+close(second_write)
+```
+
+##### 5) CEU decrypting messages
+
+ceu.edu will first read its private key from disk in PEM format and converts it to key object: 
+```{r read_priv}
+prv.pem.loaded <- scan("id_ceu_edu", what='list', sep='\n') 
+prv.key.loaded <- PKI.load.key(prv.pem.loaded)
+```
+ceu.edu reads both encrypted files received from visitors: 
+```{r read_message1}
+read.binfile <- file("encrypted_message.dat", "rb")
+reread.encrypted.data <- readBin(read.binfile, raw(), n=999999999) 
+close(read.binfile, type = 'rb')
+
+read.binfile2 <- file("encrypted_message2.dat", "rb")
+reread.encrypted.data2 <- readBin(read.binfile2, raw(), n=999999999) 
+close(read.binfile2, type = 'rb')
+```
+ceu.edu then decrypts both messages and prints them to screen: 
+```{r print_message1}
+decrypted_message <- rawToChar(PKI.decrypt(reread.encrypted.data, prv.key.loaded))
+print(decrypted_message)
+```
+
+```{r print_message2}
+decrypted_message2 <- rawToChar(PKI.decrypt(reread.encrypted.data2, prv.key.loaded))
+print(decrypted_message2)
+```
+
+##### Extra: print out ceu.edu's public key in PEM format as requested in 1.d from assignment document
+```{r print_public_key}
+print(pub.pem.loaded)
+```
